@@ -4,7 +4,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
+const authSecret = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
+
 export const authOptions: NextAuthOptions = {
+  secret: authSecret,
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
