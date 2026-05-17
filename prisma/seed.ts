@@ -1,6 +1,25 @@
 import { PrismaClient, Role, QuestionType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
+const databaseUrl = process.env.DATABASE_URL ?? "";
+
+if (!databaseUrl.startsWith("postgresql://") && !databaseUrl.startsWith("postgres://")) {
+  console.error(`
+Invalid DATABASE_URL for seeding production.
+
+You need the Postgres connection string from Vercel or Neon, for example:
+  postgresql://user:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+
+Do NOT use the Neon website URL (https://console.neon.tech/...).
+
+Steps:
+  1. Vercel → Project → Settings → Environment Variables → DATABASE_URL → copy value
+  2. export DATABASE_URL="postgresql://..."
+  3. npm run db:seed
+`);
+  process.exit(1);
+}
+
 const prisma = new PrismaClient();
 
 const PREDEFINED_QUESTIONS = [
