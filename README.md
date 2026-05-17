@@ -11,7 +11,7 @@ A Next.js web dashboard for football academy clubs with three roles:
 ## Tech stack
 
 - **Next.js 15** (App Router) + TypeScript
-- **Prisma** + SQLite (swap to PostgreSQL in production)
+- **Prisma** + PostgreSQL (Neon / Vercel Postgres)
 - **NextAuth** (credentials)
 - **Tailwind CSS 4**
 
@@ -37,7 +37,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Copy `.env.example` to `.env` and set:
 
-- `DATABASE_URL` — SQLite file path (default `file:./dev.db`)
+- `DATABASE_URL` — PostgreSQL connection string
 - `NEXTAUTH_SECRET` — random string for production
 - `NEXTAUTH_URL` — app URL (e.g. `http://localhost:3000`)
 
@@ -68,33 +68,39 @@ prisma/
 
 ## Deploy to Vercel
 
-### 1. Fix `NO_SECRET` (required)
+### 1. Create a Postgres database
 
-In the [Vercel dashboard](https://vercel.com) → your project → **Settings** → **Environment Variables**, add:
+SQLite does not work on Vercel. Use **[Neon](https://neon.tech)** (free) or **Vercel Postgres** from the [Marketplace](https://vercel.com/marketplace):
+
+1. Create a project and copy the **connection string** (`postgresql://...`).
+2. In Vercel → **Settings** → **Environment Variables**, add:
 
 | Name | Value | Environments |
 |------|--------|--------------|
-| `NEXTAUTH_SECRET` | Random string (`openssl rand -base64 32`) | Production, Preview, Development |
-| `NEXTAUTH_URL` | `https://your-app.vercel.app` (your real production URL) | Production |
-| `NEXTAUTH_URL` | `https://$VERCEL_URL` does **not** work in the UI — for previews, set the preview URL manually or use your production URL for auth testing | Preview (optional) |
+| `DATABASE_URL` | Your `postgresql://...` connection string | Production, Preview |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` | Production, Preview |
+| `NEXTAUTH_URL` | `https://your-app.vercel.app` | Production |
 
-Redeploy after saving variables (**Deployments** → ⋮ → **Redeploy**).
+3. **Redeploy** (Deployments → ⋮ → Redeploy).
 
-### 2. Database (required on Vercel)
+The `vercel-build` script runs `prisma db push` on deploy to create tables.
 
-SQLite (`file:./dev.db`) does **not** work on Vercel serverless. Use hosted Postgres:
+### 2. Seed production data (once)
 
-1. Add [Vercel Postgres](https://vercel.com/marketplace) or [Neon](https://neon.tech) from the Marketplace.
-2. Set `DATABASE_URL` in Vercel env (auto-linked if using Marketplace).
-3. Change `provider` in `prisma/schema.prisma` to `postgresql`.
-4. Run migrations locally against the prod URL once, or add to build: `prisma db push` (MVP only).
+From your machine, with the **production** `DATABASE_URL`:
 
-### 3. Build
+```bash
+export DATABASE_URL="postgresql://..."
+npm run db:seed
+```
 
-Default `npm run build` is fine; `postinstall` runs `prisma generate`.
+Demo logins (`manager@academy.com` / `password123`, etc.) will then work in production.
+
+### 3. Local development
+
+Point `.env` at the same Neon DB or a local Postgres instance — see `.env.example`.
 
 ## Production notes
 
-- Replace SQLite with PostgreSQL (`provider = "postgresql"` in `schema.prisma`).
 - Use a strong `NEXTAUTH_SECRET` and HTTPS.
 - Consider email magic links or OAuth instead of password-only auth.
