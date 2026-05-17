@@ -1,0 +1,29 @@
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
+import { roleHomePath } from "@/lib/auth";
+import { LoginForm } from "@/components/auth/login-form";
+
+export default async function LoginPage() {
+  const session = await getSession();
+  if (session?.user) redirect(roleHomePath(session.user.role));
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--pitch)_0%,_transparent_50%)]">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-pitch text-accent font-bold text-xl mb-4">
+            FA
+          </span>
+          <h1 className="text-2xl font-bold tracking-tight">Academy Hub</h1>
+          <p className="text-muted mt-2 text-sm">
+            Sign in to manage your squad, questions, and player feedback
+          </p>
+        </div>
+        <LoginForm />
+        <p className="text-center text-xs text-muted mt-6">
+          Demo: manager@academy.com / player@academy.com / admin@academy.com — password123
+        </p>
+      </div>
+    </div>
+  );
+}

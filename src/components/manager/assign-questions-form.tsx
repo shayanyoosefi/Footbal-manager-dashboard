@@ -1,0 +1,127 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { assignQuestions } from "@/lib/actions/questions";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
+type Player = { id: string; name: string };
+type Question = { id: string; text: string; category: string | null; type: string };
+
+export function AssignQuestionsForm({
+  players,
+  questions,
+}: {
+  players: Player[];
+  questions: Question[];
+}) {
+  const [pending, startTransition] = useTransition();
+  const [mode, setMode] = useState<"predefined" | "custom">("predefined");
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [message, setMessage] = useState("");
+
+  function togglePlayer(id: string) {
+    setSelectedPlayers((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    );
+  }
+
+  function handleSubmit(formData: FormData) {
+    if (selectedPlayers.length === 0) {
+      setMessage("Select at least one player");
+      return;
+    }
+    formData.set("playerIds", selectedPlayers.join(","));
+    setMessage("");
+    startTransition(async () => {
+      const result = await assignQuestions(formData);
+      setMessage(result?.error ?? "Questions sent to players");
+      if (!result?.error) setSelectedPlayers([]);
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <h2 className="font-semibold mb-4">Select players</h2>
+        <div className="flex flex-wrap gap-2">
+          {players.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => togglePlayer(p.id)}
+              className={`rounded-full border px-4 py-2 text-sm transition-colors ${
+                selectedPlayers.includes(p.id)
+                  ? "border-accent bg-accent/15 text-accent"
+                  : "border-card-border text-muted hover:border-accent/40"
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <div className="flex gap-2 mb-4">
+          <Button
+            type="button"
+            variant={mode === "predefined" ? "primary" : "ghost"}
+            size="sm"
+            onClick={() => setMode("predefined")}
+          >
+            Predefined
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "custom" ? "primary" : "ghost"}
+            size="sm"
+            onClick={() => setMode("custom")}
+          >
+            Custom question
+          </Button>
+        </div>
+
+        <form action={handleSubmit} className="space-y-4">
+          {mode === "predefined" ? (
+            <select
+              name="questionId"
+              required
+              className="w-full rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm"
+            >
+              <option value="">Choose a question</option>
+              {questions
+                .filter((q) => q.type === "PREDEFINED" || q.type === "CUSTOM")
+                .map((q) => (
+                  <option key={q.id} value={q.id}>
+                    [{q.category}] {q.text.slice(0, 80)}
+                    {q.text.length > 80 ? "…" : ""}
+                  </option>
+                ))}
+            </select>
+          ) : (
+            <Textarea
+              name="customText"
+              placeholder="Write your custom question for the selected players…"
+              required
+              minLength={5}
+            />
+          )}
+          <Input name="dueDate" type="date" />
+          <div className="flex items-center gap-4">
+            <Button type="submit" disabled={pending}>
+              {pending ? "Sending…" : "Send question"}
+            </Button>
+            {message && (
+              <p className={`text-sm ${message.includes("sent") || message.includes("Questions") ? "text-accent" : "text-danger"}`}>
+                {message}
+              </p>
+            )}
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+}
