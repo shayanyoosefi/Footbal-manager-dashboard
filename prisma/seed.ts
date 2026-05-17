@@ -1,7 +1,15 @@
 import { PrismaClient, Role, QuestionType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
-const databaseUrl = process.env.DATABASE_URL ?? "";
+let databaseUrl = process.env.DATABASE_URL ?? "";
+
+// channel_binding breaks many local Prisma/Node clients on Linux
+if (databaseUrl.includes("channel_binding=")) {
+  const url = new URL(databaseUrl);
+  url.searchParams.delete("channel_binding");
+  databaseUrl = url.toString();
+  process.env.DATABASE_URL = databaseUrl;
+}
 
 if (!databaseUrl.startsWith("postgresql://") && !databaseUrl.startsWith("postgres://")) {
   console.error(`
@@ -18,6 +26,13 @@ Steps:
   3. npm run db:seed
 `);
   process.exit(1);
+}
+
+// Prefer direct (non-pooler) host for one-off scripts — more reliable from local machines
+if (databaseUrl.includes("-pooler.")) {
+  const direct = databaseUrl.replace("-pooler.", ".");
+  console.log("Using direct Neon host for seed (non-pooler)");
+  process.env.DATABASE_URL = direct;
 }
 
 const prisma = new PrismaClient();
