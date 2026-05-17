@@ -77,7 +77,7 @@ SQLite does not work on Vercel. Use **[Neon](https://neon.tech)** (free) or **Ve
 
 | Name | Value | Environments |
 |------|--------|--------------|
-| `DATABASE_URL` | Your `postgresql://...` connection string | Production, Preview |
+| `DATABASE_URL` | Your `postgresql://...` connection string (or set Neon prefix to **DATABASE** so `DATABASE_URL` is created automatically) | Production, Preview |
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` | Production, Preview |
 | `NEXTAUTH_URL` | `https://your-app.vercel.app` | Production |
 
