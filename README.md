@@ -87,14 +87,21 @@ The `vercel-build` script runs `prisma db push` on deploy to create tables.
 
 ### 2. Seed production data (once)
 
-From your machine, with the **production** `DATABASE_URL`:
+**Option A — from the browser (if local `npm run db:seed` can't reach Neon):**
+
+1. Add `SETUP_SECRET` in Vercel env vars (`openssl rand -base64 32`).
+2. Redeploy.
+3. Visit once: `https://your-app.vercel.app/api/setup/seed?secret=YOUR_SETUP_SECRET`
+4. You should see JSON with `ok: true` and demo accounts.
+
+**Option B — from your machine:**
 
 ```bash
 export DATABASE_URL="postgresql://..."
 npm run db:seed
 ```
 
-Demo logins (`manager@academy.com` / `password123`, etc.) will then work in production.
+Demo logins: `manager@academy.com` / `password123` (and admin/player accounts from the seed response).
 
 ### 3. Local development
 
