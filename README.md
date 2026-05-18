@@ -83,7 +83,9 @@ SQLite does not work on Vercel. Use **[Neon](https://neon.tech)** (free) or **Ve
 
 3. **Redeploy** (Deployments → ⋮ → Redeploy).
 
-The `vercel-build` script runs `prisma db push` on deploy to create tables.
+The `vercel-build` script migrates legacy schemas, then runs `prisma db push` on deploy.
+
+If deploy fails with schema errors on an old database, set **`ALLOW_DB_RESET=true`** in Vercel, redeploy once (wipes data), run the seed URL, then remove `ALLOW_DB_RESET`.
 
 ### 2. Seed production data (once)
 
