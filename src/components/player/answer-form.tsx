@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { submitAnswer } from "@/lib/actions/questions";
 import { Button } from "@/components/ui/button";
 import { OPTION_LABELS } from "@/lib/questions";
 import { cn } from "@/lib/utils";
+import { getActionErrorMessage } from "@/lib/action-errors";
 
 export function AnswerForm({
   assignmentId,
@@ -13,16 +15,33 @@ export function AnswerForm({
   assignmentId: string;
   options: [string, string, string, string];
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selected, setSelected] = useState<number | null>(null);
+  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(
+    null,
+  );
 
   return (
     <form
       action={(fd) => {
         if (selected === null) return;
+        setMessage(null);
         fd.set("selectedOption", String(selected));
         startTransition(() => {
-          void submitAnswer(assignmentId, fd);
+          void submitAnswer(assignmentId, fd).then((result) => {
+            if (result?.error) {
+              setMessage({
+                type: "error",
+                text: getActionErrorMessage(result.error, "Could not submit your answer."),
+              });
+              return;
+            }
+
+            setMessage({ type: "success", text: "Answer submitted." });
+            setSelected(null);
+            router.refresh();
+          });
         });
       }}
       className="space-y-3"
@@ -58,6 +77,11 @@ export function AnswerForm({
       <Button type="submit" size="sm" disabled={pending || selected === null}>
         {pending ? "Submitting…" : "Submit answer"}
       </Button>
+      {message && (
+        <p className={`text-sm ${message.type === "success" ? "text-accent" : "text-danger"}`}>
+          {message.text}
+        </p>
+      )}
     </form>
   );
 }

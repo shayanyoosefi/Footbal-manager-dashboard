@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { assignQuestions } from "@/lib/actions/questions";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,8 @@ export function AssignQuestionsForm({
   players: Player[];
   questions: Question[];
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [mode, setMode] = useState<"predefined" | "custom">("predefined");
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
@@ -38,8 +41,16 @@ export function AssignQuestionsForm({
     setMessage("");
     startTransition(async () => {
       const result = await assignQuestions(formData);
-      setMessage(result?.error ?? "Questions sent to players");
-      if (!result?.error) setSelectedPlayers([]);
+      if (result?.error) {
+        setMessage(result.error);
+        return;
+      }
+
+      formRef.current?.reset();
+      setSelectedPlayers([]);
+      setMode("predefined");
+      setMessage("Questions sent to players.");
+      router.refresh();
     });
   }
 
@@ -85,7 +96,7 @@ export function AssignQuestionsForm({
           </Button>
         </div>
 
-        <form action={handleSubmit} className="space-y-4">
+        <form ref={formRef} action={handleSubmit} className="space-y-4">
           {mode === "predefined" ? (
             <select
               name="questionId"
@@ -94,8 +105,8 @@ export function AssignQuestionsForm({
             >
               <option value="">Choose a question</option>
               {questions.map((q) => (
-                <option key={q.id} value={q.id}>
-                  [{q.category}] {q.text.slice(0, 80)}
+              <option key={q.id} value={q.id}>
+                  [{q.category ?? "General"}] {q.text.slice(0, 80)}
                   {q.text.length > 80 ? "…" : ""}
                 </option>
               ))}

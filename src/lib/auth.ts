@@ -1,3 +1,4 @@
+import "@/lib/database-url";
 import { compare } from "bcryptjs";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";

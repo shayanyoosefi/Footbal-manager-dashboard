@@ -1,41 +1,64 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Role } from "@prisma/client";
 import { createUser } from "@/lib/actions/users";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getActionErrorMessage } from "@/lib/action-errors";
 
 export function CreateUserForm({
   coaches,
 }: {
   coaches: { id: string; name: string }[];
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [role, setRole] = useState<Role>(Role.PLAYER);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(
+    null,
+  );
 
   function handleSubmit(formData: FormData) {
-    setMessage("");
+    setMessage(null);
     startTransition(async () => {
       const result = await createUser(formData);
       if (result && "error" in result && result.error) {
-        setMessage("Check form fields and try again");
+        setMessage({
+          type: "error",
+          text: getActionErrorMessage(result.error, "Check the form fields and try again."),
+        });
         return;
       }
-      setMessage("User created successfully");
-      (document.getElementById("create-user-form") as HTMLFormElement)?.reset();
+
+      formRef.current?.reset();
+      setRole(Role.PLAYER);
+      setMessage({ type: "success", text: "User created successfully." });
+      router.refresh();
     });
   }
 
   return (
     <Card>
       <h2 className="font-display font-semibold mb-4">Add user</h2>
-      <form id="create-user-form" action={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+      <form
+        id="create-user-form"
+        ref={formRef}
+        action={handleSubmit}
+        className="grid gap-4 sm:grid-cols-2"
+      >
         <Input name="name" placeholder="Full name" required />
         <Input name="email" type="email" placeholder="Email" required />
-        <Input name="password" type="password" placeholder="Password (min 8)" required minLength={8} />
+        <Input
+          name="password"
+          type="password"
+          placeholder="Password (min 8)"
+          required
+          minLength={8}
+        />
         <select
           name="role"
           value={role}
@@ -71,7 +94,11 @@ export function CreateUserForm({
           <Button type="submit" disabled={pending}>
             {pending ? "Creating…" : "Create user"}
           </Button>
-          {message && <p className="text-sm text-accent">{message}</p>}
+          {message && (
+            <p className={`text-sm ${message.type === "success" ? "text-accent" : "text-danger"}`}>
+              {message.text}
+            </p>
+          )}
         </div>
       </form>
     </Card>

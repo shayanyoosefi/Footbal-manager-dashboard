@@ -24,7 +24,37 @@ function resolveDatabaseUrl() {
   return null;
 }
 
+function resolveDirectDatabaseUrl() {
+  const explicit =
+    process.env.DIRECT_URL ??
+    process.env.DATABASE_POSTGRES_URL_NON_POOLING ??
+    process.env.POSTGRES_URL_NON_POOLING;
+
+  if (explicit) return explicit;
+
+  const databaseUrl = resolveDatabaseUrl();
+  if (databaseUrl?.includes("-pooler.")) {
+    return databaseUrl.replace("-pooler.", ".");
+  }
+
+  return databaseUrl;
+}
+
+function resolveAuthUrl() {
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+  if (process.env.AUTH_URL) return process.env.AUTH_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return null;
+}
+
 const databaseUrl = resolveDatabaseUrl();
+const directDatabaseUrl = resolveDirectDatabaseUrl();
+const authUrl = resolveAuthUrl();
 
 if (!databaseUrl) {
   console.error(
@@ -37,7 +67,20 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-process.env.DATABASE_URL = databaseUrl;
+if (directDatabaseUrl) {
+  process.env.DATABASE_URL = directDatabaseUrl;
+  process.env.DIRECT_URL = directDatabaseUrl;
+  if (directDatabaseUrl !== databaseUrl) {
+    console.log("Using a direct database connection for Prisma build steps");
+  }
+} else {
+  process.env.DATABASE_URL = databaseUrl;
+}
+
+if (authUrl) {
+  process.env.NEXTAUTH_URL = authUrl;
+  process.env.AUTH_URL = authUrl;
+}
 
 function run(cmd) {
   console.log(`> ${cmd}`);

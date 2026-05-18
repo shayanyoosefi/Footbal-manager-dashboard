@@ -58,7 +58,9 @@ export async function createPlayer(formData: FormData) {
     },
   });
 
+  revalidatePath("/coach");
   revalidatePath("/coach/players");
+  revalidatePath("/admin/users");
   return { success: true };
 }
 

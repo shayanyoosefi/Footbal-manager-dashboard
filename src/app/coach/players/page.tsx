@@ -9,14 +9,23 @@ export default async function CoachPlayersPage() {
   const session = await requireRole(Role.COACH, Role.ADMIN);
   const coachId = session.user.role === Role.COACH ? session.user.id : undefined;
 
-  const players = await prisma.playerProfile.findMany({
-    where: coachId ? { coachId } : undefined,
-    include: {
-      user: true,
-      assignments: { include: { answer: { select: { id: true } } } },
-    },
-    orderBy: { user: { name: "asc" } },
-  });
+  const [players, coaches] = await Promise.all([
+    prisma.playerProfile.findMany({
+      where: coachId ? { coachId } : undefined,
+      include: {
+        user: true,
+        assignments: { include: { answer: { select: { id: true } } } },
+      },
+      orderBy: { user: { name: "asc" } },
+    }),
+    session.user.role === Role.ADMIN
+      ? prisma.user.findMany({
+          where: { role: Role.COACH },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        })
+      : Promise.resolve([]),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -25,7 +34,10 @@ export default async function CoachPlayersPage() {
         <p className="text-muted mt-1">Manage your academy squad</p>
       </div>
 
-      <CreatePlayerForm />
+      <CreatePlayerForm
+        coaches={coaches}
+        requireCoachSelection={session.user.role === Role.ADMIN}
+      />
 
       <div className="grid gap-4">
         {players.length === 0 ? (

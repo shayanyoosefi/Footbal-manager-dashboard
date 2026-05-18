@@ -4,7 +4,7 @@ A Next.js web dashboard for football academy clubs with three roles:
 
 | Role | Capabilities |
 |------|----------------|
-| **Manager** | Manage squad players, send predefined or custom questions, review responses |
+| **Coach** | Manage squad players, send predefined or custom questions, review responses |
 | **Player** | View and answer questions from their coach |
 | **Admin** | Full access: manage all users, maintain the global question library |
 
@@ -30,7 +30,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@academy.com | password123 |
-| Manager | manager@academy.com | password123 |
+| Coach | manager@academy.com | password123 |
 | Player | player@academy.com | password123 |
 
 ## Environment
@@ -54,7 +54,7 @@ Copy `.env.example` to `.env` and set:
 src/
   app/
     admin/      # Admin routes
-    manager/    # Manager routes
+    coach/      # Coach routes
     player/     # Player routes
     login/
   components/
@@ -84,6 +84,8 @@ SQLite does not work on Vercel. Use **[Neon](https://neon.tech)** (free) or **Ve
 3. **Redeploy** (Deployments → ⋮ → Redeploy).
 
 The `vercel-build` script migrates legacy schemas, then runs `prisma db push` on deploy.
+`vercel.json` pins Vercel to `npm run vercel-build`, so production and preview deploys use the same setup path.
+If your provider exposes a direct or non-pooling Postgres URL, set `DIRECT_URL` too for smoother Prisma deploys.
 
 If deploy fails with schema errors on an old database, set **`ALLOW_DB_RESET=true`** in Vercel, redeploy once (wipes data), run the seed URL, then remove `ALLOW_DB_RESET`.
 
@@ -103,7 +105,7 @@ export DATABASE_URL="postgresql://..."
 npm run db:seed
 ```
 
-Demo logins: `manager@academy.com` / `password123` (and admin/player accounts from the seed response).
+Demo logins: `manager@academy.com` / `password123` (coach role), plus the admin/player accounts from the seed response.
 
 ### 3. Local development
 

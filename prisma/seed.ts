@@ -1,7 +1,12 @@
 import { prisma } from "../src/lib/prisma";
 import { seedDatabase } from "../src/lib/seed-database";
 
-let databaseUrl = process.env.DATABASE_URL ?? "";
+let databaseUrl =
+  process.env.DIRECT_URL ??
+  process.env.DATABASE_POSTGRES_URL_NON_POOLING ??
+  process.env.POSTGRES_URL_NON_POOLING ??
+  process.env.DATABASE_URL ??
+  "";
 
 if (databaseUrl.includes("channel_binding=")) {
   const url = new URL(databaseUrl);

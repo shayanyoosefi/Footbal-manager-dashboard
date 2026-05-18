@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { nikeFootball } from "@/app/fonts/nike-football";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -15,9 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${nikeFootball.variable} ${nikeFootball.className} antialiased`}>
-        <Providers>{children}</Providers>
-      </body>
+      <body className="antialiased"><Providers>{children}</Providers></body>
     </html>
   );
 }
