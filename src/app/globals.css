@@ -3,9 +3,9 @@
 :root {
   --background: #0a120e;
   --foreground: #eef4ec;
-  --card: #121c16;
+  --card: rgba(18, 28, 22, 0.88);
   --card-border: #2a3d30;
-  --muted: #8fa894;
+  --muted: #b8c9bc;
   --accent: #4ade80;
   --accent-dim: #22c55e;
   --pitch: #166534;
@@ -28,14 +28,40 @@
   --font-display: var(--font-nike-football), system-ui, sans-serif;
 }
 
+html {
+  min-height: 100%;
+}
+
 body {
-  background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(22, 101, 52, 0.35), transparent),
-    var(--background);
+  position: relative;
   color: var(--foreground);
   font-family: var(--font-nike-football), system-ui, sans-serif;
   min-height: 100vh;
   letter-spacing: 0.04em;
+  background-color: var(--background);
+}
+
+/* Blurred stadium / pitch background */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: url("/background.png") center center / cover no-repeat;
+  filter: blur(14px) brightness(0.55) saturate(1.1);
+  transform: scale(1.06);
+}
+
+/* Dark green overlay for contrast and readability */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(22, 101, 52, 0.25), transparent 55%),
+    linear-gradient(180deg, rgba(10, 18, 14, 0.72) 0%, rgba(10, 18, 14, 0.88) 100%);
+  pointer-events: none;
 }
 
 .font-display {
@@ -52,7 +78,6 @@ h3,
   text-transform: uppercase;
 }
 
-/* Keep form controls readable at smaller sizes */
 input,
 textarea,
 select,

@@ -49,7 +49,7 @@ export function DashboardShell({
 
   return (
     <div className="min-h-screen flex">
-      <aside className="w-64 shrink-0 border-r border-card-border bg-card/50 flex flex-col">
+      <aside className="w-64 shrink-0 border-r border-card-border bg-card/80 backdrop-blur-md flex flex-col">
         <div className="p-6 border-b border-card-border">
           <Link href="/" className="flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pitch text-accent font-display font-bold text-sm">

@@ -1,6 +1,7 @@
 import { hash } from "bcryptjs";
 import { QuestionType, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getSelectedOptionText } from "@/lib/questions";
 
 const PREDEFINED_QUESTIONS = [
   {
@@ -97,7 +98,7 @@ export async function seedDatabase() {
     },
   });
 
-  await prisma.user.create({
+  const player2 = await prisma.user.create({
     data: {
       email: "player2@academy.com",
       name: "Sam Midfielder",
@@ -114,6 +115,23 @@ export async function seedDatabase() {
     },
   });
 
+  await prisma.user.create({
+    data: {
+      email: "player3@academy.com",
+      name: "Taylor Defender",
+      passwordHash,
+      role: Role.PLAYER,
+      playerProfile: {
+        create: {
+          coachId: coach.id,
+          position: "Defender",
+          squad: "U18",
+          jerseyNo: 4,
+        },
+      },
+    },
+  });
+
   await prisma.questionTemplate.createMany({
     data: PREDEFINED_QUESTIONS.map((q) => ({
       ...q,
@@ -121,32 +139,65 @@ export async function seedDatabase() {
     })),
   });
 
-  const wellbeingQ = await prisma.questionTemplate.findFirst({
-    where: { category: "Wellbeing" },
+  const questions = await prisma.questionTemplate.findMany();
+  const jamie = await prisma.playerProfile.findUnique({ where: { userId: playerUser.id } });
+  const sam = await prisma.playerProfile.findUnique({ where: { userId: player2.id } });
+
+  if (!jamie || !sam || questions.length === 0) {
+    return buildResult(admin.id);
+  }
+
+  const wellbeingQ = questions.find((q) => q.category === "Wellbeing")!;
+  const fitnessQ = questions.find((q) => q.category === "Fitness")!;
+  const recoveryQ = questions.find((q) => q.category === "Recovery")!;
+
+  // Pending question for Jamie
+  await prisma.questionAssignment.create({
+    data: {
+      coachId: coach.id,
+      playerId: jamie.id,
+      questionId: wellbeingQ.id,
+    },
   });
 
-  const playerProfile = await prisma.playerProfile.findUnique({
-    where: { userId: playerUser.id },
-  });
+  // Answered assignments for statistics demo
+  const answeredSpecs = [
+    { playerId: jamie.id, question: fitnessQ, option: 1 },
+    { playerId: jamie.id, question: recoveryQ, option: 0 },
+    { playerId: sam.id, question: wellbeingQ, option: 2 },
+    { playerId: sam.id, question: fitnessQ, option: 3 },
+  ];
 
-  if (wellbeingQ && playerProfile) {
-    await prisma.questionAssignment.create({
+  for (const spec of answeredSpecs) {
+    const assignment = await prisma.questionAssignment.create({
       data: {
         coachId: coach.id,
-        playerId: playerProfile.id,
-        questionId: wellbeingQ.id,
-        status: "PENDING",
+        playerId: spec.playerId,
+        questionId: spec.question.id,
+      },
+    });
+    const text = getSelectedOptionText(spec.question, spec.option);
+    await prisma.answer.create({
+      data: {
+        assignmentId: assignment.id,
+        selectedOption: spec.option,
+        text,
       },
     });
   }
 
+  return buildResult(admin.id);
+}
+
+function buildResult(adminId: string) {
   return {
     accounts: [
       { role: "admin", email: "admin@academy.com", password: "password123" },
       { role: "coach", email: "coach@academy.com", password: "password123" },
       { role: "player", email: "player@academy.com", password: "password123" },
       { role: "player", email: "player2@academy.com", password: "password123" },
+      { role: "player", email: "player3@academy.com", password: "password123" },
     ],
-    adminId: admin.id,
+    adminId,
   };
 }

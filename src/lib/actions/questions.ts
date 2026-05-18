@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { AssignmentStatus, QuestionType, Role } from "@prisma/client";
+import { QuestionType, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import {
@@ -117,17 +117,11 @@ export async function submitAnswer(assignmentId: string, formData: FormData) {
   const selectedOption = parsed.data.selectedOption;
   const text = getSelectedOptionText(assignment.question, selectedOption);
 
-  await prisma.$transaction([
-    prisma.answer.upsert({
-      where: { assignmentId },
-      create: { assignmentId, selectedOption, text },
-      update: { selectedOption, text },
-    }),
-    prisma.questionAssignment.update({
-      where: { id: assignmentId },
-      data: { status: AssignmentStatus.ANSWERED },
-    }),
-  ]);
+  await prisma.answer.upsert({
+    where: { assignmentId },
+    create: { assignmentId, selectedOption, text },
+    update: { selectedOption, text },
+  });
 
   revalidateCoachPaths();
   return { success: true };
