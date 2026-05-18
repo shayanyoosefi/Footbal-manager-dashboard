@@ -48,7 +48,7 @@ body::before {
   inset: 0;
   z-index: -2;
   background: url("/background.png") center center / cover no-repeat;
-  filter: blur(14px) brightness(0.55) saturate(1.1);
+  filter: blur(10px) brightness(0.55) saturate(1.1);
   transform: scale(1.06);
 }
 
