@@ -18,6 +18,11 @@ enum QuestionType {
   CUSTOM
 }
 
+enum AssignmentStatus {
+  PENDING
+  ANSWERED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -73,7 +78,8 @@ model QuestionTemplate {
 }
 
 model QuestionAssignment {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
+  status    AssignmentStatus @default(PENDING)
   dueDate   DateTime?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -89,7 +95,7 @@ model QuestionAssignment {
 
   answer Answer?
 
-  @@index([playerId])
+  @@index([playerId, status])
   @@index([coachId])
 }
 

@@ -1,7 +1,8 @@
-import { Role } from "@prisma/client";
+import { Role, AssignmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
 import { getOptionLabel } from "@/lib/questions";
 
@@ -35,9 +36,14 @@ export default async function CoachResponsesPage() {
         ) : (
           assignments.map((a) => (
             <Card key={a.id} className="space-y-3">
-              <div>
-                <p className="font-medium">{a.player.user.name}</p>
-                <p className="text-sm text-muted mt-1">{a.question.text}</p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <p className="font-medium">{a.player.user.name}</p>
+                  <p className="text-sm text-muted mt-1">{a.question.text}</p>
+                </div>
+                <Badge variant={a.status === AssignmentStatus.ANSWERED ? "success" : "warning"}>
+                  {a.status}
+                </Badge>
               </div>
               {a.answer ? (
                 <div className="rounded-xl bg-background border border-card-border p-4 text-sm">

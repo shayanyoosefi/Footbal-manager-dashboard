@@ -2,8 +2,8 @@ import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { CreatePlayerForm } from "@/components/coach/create-player-form";
-import { isAnswered } from "@/lib/assignments";
 
 export default async function CoachPlayersPage() {
   const session = await requireRole(Role.COACH, Role.ADMIN);
@@ -13,7 +13,7 @@ export default async function CoachPlayersPage() {
     where: coachId ? { coachId } : undefined,
     include: {
       user: true,
-      assignments: { include: { answer: { select: { id: true } } } },
+      assignments: { select: { status: true } },
     },
     orderBy: { user: { name: "asc" } },
   });
@@ -34,7 +34,7 @@ export default async function CoachPlayersPage() {
           </Card>
         ) : (
           players.map((p) => {
-            const unanswered = p.assignments.filter((a) => !isAnswered(a)).length;
+            const pending = p.assignments.filter((a) => a.status === "PENDING").length;
             return (
               <Card key={p.id} className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -45,9 +45,9 @@ export default async function CoachPlayersPage() {
                     {p.jerseyNo ? ` · #${p.jerseyNo}` : ""}
                   </p>
                 </div>
-                {unanswered > 0 && (
-                  <p className="text-sm text-warning">{unanswered} unanswered</p>
-                )}
+                <Badge variant={pending > 0 ? "warning" : "success"}>
+                  {pending > 0 ? `${pending} pending` : "Up to date"}
+                </Badge>
               </Card>
             );
           })

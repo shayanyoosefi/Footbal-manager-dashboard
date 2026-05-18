@@ -135,6 +135,7 @@ export async function seedDatabase() {
         coachId: coach.id,
         playerId: playerProfile.id,
         questionId: wellbeingQ.id,
+        status: "PENDING",
       },
     });
   }

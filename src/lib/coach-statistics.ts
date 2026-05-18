@@ -1,5 +1,5 @@
+import { AssignmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { isAnswered } from "@/lib/assignments";
 import { getOptionsList, getOptionLabel, getSelectedOptionText } from "@/lib/questions";
 
 export async function getCoachStatistics(coachId?: string) {
@@ -13,17 +13,20 @@ export async function getCoachStatistics(coachId?: string) {
   });
 
   const total = assignments.length;
-  const answeredList = assignments.filter(isAnswered);
-  const pending = total - answeredList.length;
-  const responseRate = total > 0 ? Math.round((answeredList.length / total) * 100) : 0;
+  const answered = assignments.filter((a) => a.status === AssignmentStatus.ANSWERED);
+  const pending = total - answered.length;
+  const responseRate = total > 0 ? Math.round((answered.length / total) * 100) : 0;
 
-  const byCategory = new Map<string, { total: number; answered: number }>();
+  const byCategory = new Map<
+    string,
+    { total: number; answered: number }
+  >();
 
   for (const a of assignments) {
     const cat = a.question.category ?? "General";
     const entry = byCategory.get(cat) ?? { total: 0, answered: 0 };
     entry.total += 1;
-    if (isAnswered(a)) entry.answered += 1;
+    if (a.status === AssignmentStatus.ANSWERED) entry.answered += 1;
     byCategory.set(cat, entry);
   }
 
@@ -47,7 +50,7 @@ export async function getCoachStatistics(coachId?: string) {
     }
   >();
 
-  for (const a of answeredList) {
+  for (const a of answered) {
     if (a.answer == null) continue;
     const key = a.questionId;
     let entry = questionMap.get(key);
@@ -87,7 +90,7 @@ export async function getCoachStatistics(coachId?: string) {
       total: 0,
     };
     entry.total += 1;
-    if (isAnswered(a)) entry.answered += 1;
+    if (a.status === AssignmentStatus.ANSWERED) entry.answered += 1;
     playerMap.set(id, entry);
   }
 
@@ -98,7 +101,7 @@ export async function getCoachStatistics(coachId?: string) {
     }))
     .sort((a, b) => b.total - a.total);
 
-  const recentAnswers = answeredList
+  const recentAnswers = answered
     .filter((a) => a.answer)
     .sort((a, b) => b.answer!.createdAt.getTime() - a.answer!.createdAt.getTime())
     .slice(0, 8)
@@ -111,7 +114,7 @@ export async function getCoachStatistics(coachId?: string) {
     }));
 
   return {
-    overview: { total, answered: answeredList.length, pending, responseRate },
+    overview: { total, answered: answered.length, pending, responseRate },
     categoryStats,
     questionStats,
     playerStats,

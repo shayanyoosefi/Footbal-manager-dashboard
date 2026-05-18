@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { Role, AssignmentStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { Card } from "@/components/ui/card";
@@ -9,17 +9,21 @@ export default async function CoachOverviewPage() {
   const session = await requireRole(Role.COACH, Role.ADMIN);
   const coachId = session.user.role === Role.COACH ? session.user.id : undefined;
 
-  const assignments = await prisma.questionAssignment.findMany({
-    where: coachId ? { coachId } : undefined,
-    include: { answer: { select: { id: true } } },
-  });
-
-  const playerCount = await prisma.playerProfile.count({
-    where: coachId ? { coachId } : undefined,
-  });
-
-  const answered = assignments.filter((a) => a.answer != null).length;
-  const pending = assignments.length - answered;
+  const [playerCount, pending, answered] = await Promise.all([
+    prisma.playerProfile.count({ where: coachId ? { coachId } : undefined }),
+    prisma.questionAssignment.count({
+      where: {
+        ...(coachId ? { coachId } : {}),
+        status: AssignmentStatus.PENDING,
+      },
+    }),
+    prisma.questionAssignment.count({
+      where: {
+        ...(coachId ? { coachId } : {}),
+        status: AssignmentStatus.ANSWERED,
+      },
+    }),
+  ]);
 
   return (
     <div className="space-y-8">

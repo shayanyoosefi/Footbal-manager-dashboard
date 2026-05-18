@@ -109,13 +109,6 @@ async function main() {
     `ALTER TABLE "Answer" ALTER COLUMN "selectedOption" SET NOT NULL`,
   );
 
-  if (await columnExists("QuestionAssignment", "status")) {
-    console.log("Dropping QuestionAssignment.status");
-    await prisma.$executeRawUnsafe(`ALTER TABLE "QuestionAssignment" DROP COLUMN "status"`);
-  }
-
-  await prisma.$executeRawUnsafe(`DROP TYPE IF EXISTS "AssignmentStatus"`);
-
   console.log("Legacy schema migration complete.");
 }
 
