@@ -24,8 +24,8 @@
   --color-pitch: var(--pitch);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
-  --font-sans: var(--font-sans), system-ui, sans-serif;
-  --font-display: var(--font-display), system-ui, sans-serif;
+  --font-sans: var(--font-nike-football), system-ui, sans-serif;
+  --font-display: var(--font-nike-football), system-ui, sans-serif;
 }
 
 body {
@@ -33,20 +33,32 @@ body {
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(22, 101, 52, 0.35), transparent),
     var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-nike-football), system-ui, sans-serif;
   min-height: 100vh;
+  letter-spacing: 0.04em;
 }
 
 .font-display {
-  font-family: var(--font-display), system-ui, sans-serif;
-  letter-spacing: 0.02em;
+  font-family: var(--font-nike-football), system-ui, sans-serif;
+  letter-spacing: 0.06em;
 }
 
 h1,
 h2,
 h3,
 .font-display {
-  font-family: var(--font-display), system-ui, sans-serif;
+  font-family: var(--font-nike-football), system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Keep form controls readable at smaller sizes */
+input,
+textarea,
+select,
+button {
+  letter-spacing: 0.03em;
+  text-transform: none;
 }
 
 * {
