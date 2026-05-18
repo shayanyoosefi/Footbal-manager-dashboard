@@ -3,15 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CreatePlayerForm } from "@/components/manager/create-player-form";
+import { CreatePlayerForm } from "@/components/coach/create-player-form";
 
-export default async function ManagerPlayersPage() {
-  const session = await requireRole(Role.MANAGER, Role.ADMIN);
-  const managerId =
-    session.user.role === Role.MANAGER ? session.user.id : undefined;
+export default async function CoachPlayersPage() {
+  const session = await requireRole(Role.COACH, Role.ADMIN);
+  const coachId = session.user.role === Role.COACH ? session.user.id : undefined;
 
   const players = await prisma.playerProfile.findMany({
-    where: managerId ? { managerId } : undefined,
+    where: coachId ? { coachId } : undefined,
     include: {
       user: true,
       assignments: { select: { status: true } },
@@ -22,7 +21,7 @@ export default async function ManagerPlayersPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Players</h1>
+        <h1 className="font-display text-2xl font-bold tracking-wide">Players</h1>
         <p className="text-muted mt-1">Manage your academy squad</p>
       </div>
 

@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0c1117;
-  --foreground: #e8edf4;
-  --card: #141b24;
-  --card-border: #243044;
-  --muted: #8b9cb3;
-  --accent: #22c55e;
-  --accent-dim: #16a34a;
-  --pitch: #14532d;
+  --background: #0a120e;
+  --foreground: #eef4ec;
+  --card: #121c16;
+  --card-border: #2a3d30;
+  --muted: #8fa894;
+  --accent: #4ade80;
+  --accent-dim: #22c55e;
+  --pitch: #166534;
   --danger: #ef4444;
-  --warning: #f59e0b;
+  --warning: #fbbf24;
 }
 
 @theme inline {
@@ -24,15 +24,29 @@
   --color-pitch: var(--pitch);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans), system-ui, sans-serif;
+  --font-display: var(--font-display), system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(22, 101, 52, 0.35), transparent),
+    var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
 }
 
 * {

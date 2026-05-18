@@ -11,7 +11,7 @@ export const createUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8).max(100),
   role: z.nativeEnum(Role),
-  managerId: z.string().optional(),
+  coachId: z.string().optional(),
   position: z.string().optional(),
   squad: z.string().optional(),
   jerseyNo: z.coerce.number().int().min(1).max(99).optional(),
@@ -23,18 +23,28 @@ export const updatePlayerSchema = z.object({
   jerseyNo: z.coerce.number().int().min(1).max(99).optional().nullable(),
 });
 
+const optionField = z.string().min(1, "Required").max(200);
+
+export const questionOptionsSchema = z.object({
+  text: z.string().min(5).max(500),
+  category: z.string().max(50).optional(),
+  optionA: optionField,
+  optionB: optionField,
+  optionC: optionField,
+  optionD: optionField,
+});
+
 export const assignQuestionSchema = z.object({
   playerIds: z.array(z.string()).min(1),
   questionId: z.string().optional(),
   customText: z.string().min(5).max(500).optional(),
+  optionA: optionField.optional(),
+  optionB: optionField.optional(),
+  optionC: optionField.optional(),
+  optionD: optionField.optional(),
   dueDate: z.string().optional(),
 });
 
 export const answerSchema = z.object({
-  text: z.string().min(1).max(2000),
-});
-
-export const customQuestionSchema = z.object({
-  text: z.string().min(5).max(500),
-  category: z.string().max(50).optional(),
+  selectedOption: z.coerce.number().int().min(0).max(3),
 });

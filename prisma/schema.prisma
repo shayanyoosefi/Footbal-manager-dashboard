@@ -9,7 +9,7 @@ datasource db {
 
 enum Role {
   ADMIN
-  MANAGER
+  COACH
   PLAYER
 }
 
@@ -32,17 +32,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  // Manager owns players in their squad
-  managedPlayers PlayerProfile[] @relation("ManagerPlayers")
+  coachedPlayers PlayerProfile[] @relation("CoachPlayers")
 
-  // Player profile (when role is PLAYER)
   playerProfile PlayerProfile? @relation("PlayerUser")
 
-  // Questions created by manager
   customQuestions QuestionTemplate[] @relation("QuestionAuthor")
 
-  // Assignments sent by manager
-  assignmentsSent QuestionAssignment[] @relation("AssignmentManager")
+  assignmentsSent QuestionAssignment[] @relation("AssignmentCoach")
 }
 
 model PlayerProfile {
@@ -53,11 +49,11 @@ model PlayerProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    String @unique
-  user      User   @relation("PlayerUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation("PlayerUser", fields: [userId], references: [id], onDelete: Cascade)
 
-  managerId String
-  manager   User   @relation("ManagerPlayers", fields: [managerId], references: [id], onDelete: Cascade)
+  coachId String
+  coach   User   @relation("CoachPlayers", fields: [coachId], references: [id], onDelete: Cascade)
 
   assignments QuestionAssignment[]
 }
@@ -66,6 +62,10 @@ model QuestionTemplate {
   id        String       @id @default(cuid())
   text      String
   category  String?
+  optionA   String
+  optionB   String
+  optionC   String
+  optionD   String
   type      QuestionType @default(PREDEFINED)
   isActive  Boolean      @default(true)
   createdAt DateTime     @default(now())
@@ -84,8 +84,8 @@ model QuestionAssignment {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  managerId String
-  manager   User   @relation("AssignmentManager", fields: [managerId], references: [id], onDelete: Cascade)
+  coachId String
+  coach   User   @relation("AssignmentCoach", fields: [coachId], references: [id], onDelete: Cascade)
 
   playerId String
   player   PlayerProfile @relation(fields: [playerId], references: [id], onDelete: Cascade)
@@ -96,14 +96,15 @@ model QuestionAssignment {
   answer Answer?
 
   @@index([playerId, status])
-  @@index([managerId])
+  @@index([coachId])
 }
 
 model Answer {
-  id        String   @id @default(cuid())
-  text      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(cuid())
+  selectedOption  Int
+  text            String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   assignmentId String             @unique
   assignment   QuestionAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)

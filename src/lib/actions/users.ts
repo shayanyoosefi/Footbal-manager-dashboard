@@ -15,7 +15,7 @@ export async function createUser(formData: FormData) {
     email: formData.get("email"),
     password: formData.get("password"),
     role: formData.get("role"),
-    managerId: formData.get("managerId") || undefined,
+    coachId: formData.get("coachId") || undefined,
     position: formData.get("position") || undefined,
     squad: formData.get("squad") || undefined,
     jerseyNo: formData.get("jerseyNo") || undefined,
@@ -28,8 +28,8 @@ export async function createUser(formData: FormData) {
 
   const data = parsed.data;
 
-  if (data.role === Role.PLAYER && !data.managerId) {
-    return { error: { managerId: ["Manager is required for players"] } };
+  if (data.role === Role.PLAYER && !data.coachId) {
+    return { error: { coachId: ["Coach is required for players"] } };
   }
 
   const existing = await prisma.user.findUnique({
@@ -47,11 +47,11 @@ export async function createUser(formData: FormData) {
       email: data.email.toLowerCase(),
       passwordHash,
       role: data.role,
-      ...(data.role === Role.PLAYER && data.managerId
+      ...(data.role === Role.PLAYER && data.coachId
         ? {
             playerProfile: {
               create: {
-                managerId: data.managerId,
+                coachId: data.coachId,
                 position: data.position,
                 squad: data.squad,
                 jerseyNo: data.jerseyNo ?? undefined,

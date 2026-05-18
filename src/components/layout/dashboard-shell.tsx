@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { Role } from "@prisma/client";
-import { Shield, Users, MessageSquare, LayoutDashboard } from "lucide-react";
+import {
+  BarChart3,
+  LayoutDashboard,
+  MessageSquare,
+  Shield,
+  Users,
+} from "lucide-react";
 import { SignOutButton } from "@/components/layout/sign-out-button";
 
 type NavItem = { href: string; label: string; icon: React.ReactNode };
@@ -10,17 +16,24 @@ const navByRole: Record<Role, NavItem[]> = {
     { href: "/admin", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
     { href: "/admin/users", label: "Users", icon: <Users className="h-4 w-4" /> },
     { href: "/admin/questions", label: "Questions", icon: <MessageSquare className="h-4 w-4" /> },
-    { href: "/manager", label: "Manager view", icon: <Shield className="h-4 w-4" /> },
+    { href: "/coach", label: "Coach view", icon: <Shield className="h-4 w-4" /> },
   ],
-  [Role.MANAGER]: [
-    { href: "/manager", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { href: "/manager/players", label: "Players", icon: <Users className="h-4 w-4" /> },
-    { href: "/manager/questions", label: "Ask questions", icon: <MessageSquare className="h-4 w-4" /> },
-    { href: "/manager/responses", label: "Responses", icon: <Shield className="h-4 w-4" /> },
+  [Role.COACH]: [
+    { href: "/coach", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { href: "/coach/players", label: "Players", icon: <Users className="h-4 w-4" /> },
+    { href: "/coach/questions", label: "Ask questions", icon: <MessageSquare className="h-4 w-4" /> },
+    { href: "/coach/statistics", label: "Statistics", icon: <BarChart3 className="h-4 w-4" /> },
+    { href: "/coach/responses", label: "Responses", icon: <Shield className="h-4 w-4" /> },
   ],
   [Role.PLAYER]: [
     { href: "/player", label: "My questions", icon: <MessageSquare className="h-4 w-4" /> },
   ],
+};
+
+const roleLabel: Record<Role, string> = {
+  [Role.ADMIN]: "admin",
+  [Role.COACH]: "coach",
+  [Role.PLAYER]: "player",
 };
 
 export function DashboardShell({
@@ -39,12 +52,14 @@ export function DashboardShell({
       <aside className="w-64 shrink-0 border-r border-card-border bg-card/50 flex flex-col">
         <div className="p-6 border-b border-card-border">
           <Link href="/" className="flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pitch text-accent font-bold text-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pitch text-accent font-display font-bold text-sm">
               FA
             </span>
             <div>
-              <p className="font-semibold text-sm leading-tight">Academy Hub</p>
-              <p className="text-xs text-muted capitalize">{role.toLowerCase()}</p>
+              <p className="font-display font-semibold text-sm leading-tight tracking-wide">
+                Academy Hub
+              </p>
+              <p className="text-xs text-muted capitalize">{roleLabel[role]}</p>
             </div>
           </Link>
         </div>

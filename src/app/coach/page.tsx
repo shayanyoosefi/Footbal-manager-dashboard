@@ -5,26 +5,21 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default async function ManagerOverviewPage() {
-  const session = await requireRole(Role.MANAGER, Role.ADMIN);
-  const managerId =
-    session.user.role === Role.ADMIN
-      ? undefined
-      : session.user.id;
+export default async function CoachOverviewPage() {
+  const session = await requireRole(Role.COACH, Role.ADMIN);
+  const coachId = session.user.role === Role.COACH ? session.user.id : undefined;
 
   const [playerCount, pending, answered] = await Promise.all([
-    prisma.playerProfile.count({
-      where: managerId ? { managerId } : undefined,
-    }),
+    prisma.playerProfile.count({ where: coachId ? { coachId } : undefined }),
     prisma.questionAssignment.count({
       where: {
-        ...(managerId ? { managerId } : {}),
+        ...(coachId ? { coachId } : {}),
         status: AssignmentStatus.PENDING,
       },
     }),
     prisma.questionAssignment.count({
       where: {
-        ...(managerId ? { managerId } : {}),
+        ...(coachId ? { coachId } : {}),
         status: AssignmentStatus.ANSWERED,
       },
     }),
@@ -33,34 +28,37 @@ export default async function ManagerOverviewPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Manager dashboard</h1>
+        <h1 className="font-display text-2xl font-bold tracking-wide">Coach dashboard</h1>
         <p className="text-muted mt-1">Your squad at a glance</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
-          <p className="text-3xl font-bold">{playerCount}</p>
+          <p className="text-3xl font-display font-bold">{playerCount}</p>
           <p className="text-sm text-muted">Players in squad</p>
         </Card>
         <Card>
-          <p className="text-3xl font-bold text-warning">{pending}</p>
+          <p className="text-3xl font-display font-bold text-warning">{pending}</p>
           <p className="text-sm text-muted">Awaiting answers</p>
         </Card>
         <Card>
-          <p className="text-3xl font-bold text-accent">{answered}</p>
+          <p className="text-3xl font-display font-bold text-accent">{answered}</p>
           <p className="text-sm text-muted">Answered</p>
         </Card>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Link href="/manager/players">
+        <Link href="/coach/players">
           <Button variant="secondary">Manage players</Button>
         </Link>
-        <Link href="/manager/questions">
+        <Link href="/coach/questions">
           <Button>Ask a question</Button>
         </Link>
-        <Link href="/manager/responses">
-          <Button variant="ghost">View responses</Button>
+        <Link href="/coach/statistics">
+          <Button variant="secondary">View statistics</Button>
+        </Link>
+        <Link href="/coach/responses">
+          <Button variant="ghost">All responses</Button>
         </Link>
       </div>
     </div>

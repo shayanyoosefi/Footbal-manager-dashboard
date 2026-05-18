@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export function CreateUserForm({
-  managers,
+  coaches,
 }: {
-  managers: { id: string; name: string }[];
+  coaches: { id: string; name: string }[];
 }) {
   const [pending, startTransition] = useTransition();
   const [role, setRole] = useState<Role>(Role.PLAYER);
@@ -31,7 +31,7 @@ export function CreateUserForm({
 
   return (
     <Card>
-      <h2 className="font-semibold mb-4">Add user</h2>
+      <h2 className="font-display font-semibold mb-4">Add user</h2>
       <form id="create-user-form" action={handleSubmit} className="grid gap-4 sm:grid-cols-2">
         <Input name="name" placeholder="Full name" required />
         <Input name="email" type="email" placeholder="Email" required />
@@ -44,21 +44,21 @@ export function CreateUserForm({
         >
           {Object.values(Role).map((r) => (
             <option key={r} value={r}>
-              {r}
+              {r === Role.COACH ? "COACH" : r}
             </option>
           ))}
         </select>
         {role === Role.PLAYER && (
           <>
             <select
-              name="managerId"
+              name="coachId"
               required
               className="rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm sm:col-span-2"
             >
-              <option value="">Select manager</option>
-              {managers.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
+              <option value="">Select coach</option>
+              {coaches.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
                 </option>
               ))}
             </select>

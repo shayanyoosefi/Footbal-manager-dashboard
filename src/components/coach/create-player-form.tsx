@@ -12,7 +12,7 @@ export function CreatePlayerForm() {
 
   return (
     <Card>
-      <h2 className="font-semibold mb-4">Add player</h2>
+      <h2 className="font-display font-semibold mb-4">Add player</h2>
       <form
         action={(fd) =>
           startTransition(async () => {

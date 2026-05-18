@@ -4,14 +4,14 @@ import { requireRole } from "@/lib/session";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/utils";
+import { getOptionLabel } from "@/lib/questions";
 
-export default async function ManagerResponsesPage() {
-  const session = await requireRole(Role.MANAGER, Role.ADMIN);
-  const managerId =
-    session.user.role === Role.MANAGER ? session.user.id : undefined;
+export default async function CoachResponsesPage() {
+  const session = await requireRole(Role.COACH, Role.ADMIN);
+  const coachId = session.user.role === Role.COACH ? session.user.id : undefined;
 
   const assignments = await prisma.questionAssignment.findMany({
-    where: managerId ? { managerId } : {},
+    where: coachId ? { coachId } : {},
     include: {
       player: { include: { user: { select: { name: true } } } },
       question: true,
@@ -24,8 +24,8 @@ export default async function ManagerResponsesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Player responses</h1>
-        <p className="text-muted mt-1">Review answers from your squad</p>
+        <h1 className="font-display text-2xl font-bold tracking-wide">Player responses</h1>
+        <p className="text-muted mt-1">Review multiple-choice answers from your squad</p>
       </div>
 
       <div className="space-y-4">
@@ -47,7 +47,10 @@ export default async function ManagerResponsesPage() {
               </div>
               {a.answer ? (
                 <div className="rounded-xl bg-background border border-card-border p-4 text-sm">
-                  {a.answer.text}
+                  <span className="font-display font-semibold text-accent">
+                    {getOptionLabel(a.answer.selectedOption)}
+                  </span>{" "}
+                  — {a.answer.text}
                   <p className="text-xs text-muted mt-2">Answered {formatDate(a.answer.updatedAt)}</p>
                 </div>
               ) : (

@@ -8,21 +8,21 @@ import { requireRole } from "@/lib/session";
 import { createUserSchema, updatePlayerSchema } from "@/lib/validators";
 
 export async function createPlayer(formData: FormData) {
-  const session = await requireRole(Role.MANAGER, Role.ADMIN);
+  const session = await requireRole(Role.COACH, Role.ADMIN);
 
-  const managerId =
+  const coachId =
     session.user.role === Role.ADMIN
-      ? (formData.get("managerId") as string)
+      ? (formData.get("coachId") as string)
       : session.user.id;
 
-  if (!managerId) return { error: "Manager is required" };
+  if (!coachId) return { error: "Coach is required" };
 
   const raw = {
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
     role: Role.PLAYER,
-    managerId,
+    coachId,
     position: formData.get("position") || undefined,
     squad: formData.get("squad") || undefined,
     jerseyNo: formData.get("jerseyNo") || undefined,
@@ -49,7 +49,7 @@ export async function createPlayer(formData: FormData) {
       role: Role.PLAYER,
       playerProfile: {
         create: {
-          managerId,
+          coachId,
           position: data.position,
           squad: data.squad,
           jerseyNo: data.jerseyNo ?? undefined,
@@ -58,12 +58,12 @@ export async function createPlayer(formData: FormData) {
     },
   });
 
-  revalidatePath("/manager/players");
+  revalidatePath("/coach/players");
   return { success: true };
 }
 
 export async function updatePlayer(playerProfileId: string, formData: FormData) {
-  const session = await requireRole(Role.MANAGER, Role.ADMIN);
+  const session = await requireRole(Role.COACH, Role.ADMIN);
 
   const parsed = updatePlayerSchema.safeParse({
     position: formData.get("position") || undefined,
@@ -75,7 +75,7 @@ export async function updatePlayer(playerProfileId: string, formData: FormData) 
   const profile = await prisma.playerProfile.findFirst({
     where: {
       id: playerProfileId,
-      ...(session.user.role === Role.MANAGER ? { managerId: session.user.id } : {}),
+      ...(session.user.role === Role.COACH ? { coachId: session.user.id } : {}),
     },
   });
   if (!profile) return { error: "Player not found" };
@@ -89,6 +89,6 @@ export async function updatePlayer(playerProfileId: string, formData: FormData) 
     },
   });
 
-  revalidatePath("/manager/players");
+  revalidatePath("/coach/players");
   return { success: true };
 }

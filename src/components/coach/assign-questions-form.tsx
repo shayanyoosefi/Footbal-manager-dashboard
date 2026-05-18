@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { QuestionOptionsFields } from "@/components/ui/question-options-fields";
 
 type Player = { id: string; name: string };
 type Question = { id: string; text: string; category: string | null; type: string };
@@ -45,7 +46,7 @@ export function AssignQuestionsForm({
   return (
     <div className="space-y-6">
       <Card>
-        <h2 className="font-semibold mb-4">Select players</h2>
+        <h2 className="font-display font-semibold mb-4">Select players</h2>
         <div className="flex flex-wrap gap-2">
           {players.map((p) => (
             <button
@@ -72,7 +73,7 @@ export function AssignQuestionsForm({
             size="sm"
             onClick={() => setMode("predefined")}
           >
-            Predefined
+            Library
           </Button>
           <Button
             type="button"
@@ -80,7 +81,7 @@ export function AssignQuestionsForm({
             size="sm"
             onClick={() => setMode("custom")}
           >
-            Custom question
+            Custom (4 options)
           </Button>
         </div>
 
@@ -92,22 +93,23 @@ export function AssignQuestionsForm({
               className="w-full rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm"
             >
               <option value="">Choose a question</option>
-              {questions
-                .filter((q) => q.type === "PREDEFINED" || q.type === "CUSTOM")
-                .map((q) => (
-                  <option key={q.id} value={q.id}>
-                    [{q.category}] {q.text.slice(0, 80)}
-                    {q.text.length > 80 ? "…" : ""}
-                  </option>
-                ))}
+              {questions.map((q) => (
+                <option key={q.id} value={q.id}>
+                  [{q.category}] {q.text.slice(0, 80)}
+                  {q.text.length > 80 ? "…" : ""}
+                </option>
+              ))}
             </select>
           ) : (
-            <Textarea
-              name="customText"
-              placeholder="Write your custom question for the selected players…"
-              required
-              minLength={5}
-            />
+            <>
+              <Textarea
+                name="customText"
+                placeholder="Your question for the selected players…"
+                required
+                minLength={5}
+              />
+              <QuestionOptionsFields />
+            </>
           )}
           <Input name="dueDate" type="date" />
           <div className="flex items-center gap-4">
@@ -115,7 +117,13 @@ export function AssignQuestionsForm({
               {pending ? "Sending…" : "Send question"}
             </Button>
             {message && (
-              <p className={`text-sm ${message.includes("sent") || message.includes("Questions") ? "text-accent" : "text-danger"}`}>
+              <p
+                className={`text-sm ${
+                  message.includes("sent") || message.includes("Questions")
+                    ? "text-accent"
+                    : "text-danger"
+                }`}
+              >
                 {message}
               </p>
             )}

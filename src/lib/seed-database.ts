@@ -3,16 +3,54 @@ import { QuestionType, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 const PREDEFINED_QUESTIONS = [
-  { text: "How did you feel during today's training session?", category: "Wellbeing" },
-  { text: "Rate your energy level from 1–10 after the match.", category: "Fitness" },
-  { text: "What was your main focus area in training this week?", category: "Development" },
-  { text: "Did you experience any pain or discomfort?", category: "Health" },
-  { text: "What is one skill you want to improve before next week?", category: "Goals" },
-  { text: "How many hours of sleep did you get last night?", category: "Recovery" },
-  { text: "Describe your nutrition before today's session.", category: "Nutrition" },
-  { text: "What tactical instruction was hardest to apply?", category: "Tactics" },
-  { text: "How confident do you feel about your role in the team?", category: "Mindset" },
-  { text: "Any feedback for the coaching staff?", category: "Feedback" },
+  {
+    text: "How did you feel during today's training session?",
+    category: "Wellbeing",
+    optionA: "Excellent — full of energy",
+    optionB: "Good — normal effort",
+    optionC: "Tired — below usual",
+    optionD: "Struggling — need recovery",
+  },
+  {
+    text: "Rate your energy level after the match.",
+    category: "Fitness",
+    optionA: "Very high (9–10)",
+    optionB: "Moderate (6–8)",
+    optionC: "Low (4–5)",
+    optionD: "Very low (1–3)",
+  },
+  {
+    text: "What was your main focus in training this week?",
+    category: "Development",
+    optionA: "Technical skills",
+    optionB: "Tactical awareness",
+    optionC: "Physical conditioning",
+    optionD: "Mental / confidence",
+  },
+  {
+    text: "Did you experience any pain or discomfort?",
+    category: "Health",
+    optionA: "No issues",
+    optionB: "Minor soreness only",
+    optionC: "Noticeable discomfort",
+    optionD: "Pain — need to report",
+  },
+  {
+    text: "How many hours of sleep did you get last night?",
+    category: "Recovery",
+    optionA: "8+ hours",
+    optionB: "6–7 hours",
+    optionC: "4–5 hours",
+    optionD: "Less than 4 hours",
+  },
+  {
+    text: "How confident do you feel about your role in the team?",
+    category: "Mindset",
+    optionA: "Very confident",
+    optionB: "Fairly confident",
+    optionC: "Unsure",
+    optionD: "Not confident",
+  },
 ];
 
 export async function seedDatabase() {
@@ -33,12 +71,12 @@ export async function seedDatabase() {
     },
   });
 
-  const manager = await prisma.user.create({
+  const coach = await prisma.user.create({
     data: {
-      email: "manager@academy.com",
+      email: "coach@academy.com",
       name: "Alex Coach",
       passwordHash,
-      role: Role.MANAGER,
+      role: Role.COACH,
     },
   });
 
@@ -50,7 +88,7 @@ export async function seedDatabase() {
       role: Role.PLAYER,
       playerProfile: {
         create: {
-          managerId: manager.id,
+          coachId: coach.id,
           position: "Forward",
           squad: "U18",
           jerseyNo: 9,
@@ -67,7 +105,7 @@ export async function seedDatabase() {
       role: Role.PLAYER,
       playerProfile: {
         create: {
-          managerId: manager.id,
+          coachId: coach.id,
           position: "Midfielder",
           squad: "U18",
           jerseyNo: 8,
@@ -94,7 +132,7 @@ export async function seedDatabase() {
   if (wellbeingQ && playerProfile) {
     await prisma.questionAssignment.create({
       data: {
-        managerId: manager.id,
+        coachId: coach.id,
         playerId: playerProfile.id,
         questionId: wellbeingQ.id,
         status: "PENDING",
@@ -105,7 +143,7 @@ export async function seedDatabase() {
   return {
     accounts: [
       { role: "admin", email: "admin@academy.com", password: "password123" },
-      { role: "manager", email: "manager@academy.com", password: "password123" },
+      { role: "coach", email: "coach@academy.com", password: "password123" },
       { role: "player", email: "player@academy.com", password: "password123" },
       { role: "player", email: "player2@academy.com", password: "password123" },
     ],

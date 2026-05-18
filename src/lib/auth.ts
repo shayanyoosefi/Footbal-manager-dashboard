@@ -62,8 +62,8 @@ export function roleHomePath(role: Role) {
   switch (role) {
     case Role.ADMIN:
       return "/admin";
-    case Role.MANAGER:
-      return "/manager";
+    case Role.COACH:
+      return "/coach";
     case Role.PLAYER:
       return "/player";
     default:

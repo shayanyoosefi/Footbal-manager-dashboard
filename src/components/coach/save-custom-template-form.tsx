@@ -6,27 +6,27 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { QuestionOptionsFields } from "@/components/ui/question-options-fields";
 
 export function SaveCustomTemplateForm() {
   const [pending, startTransition] = useTransition();
 
   return (
     <Card>
-      <h2 className="font-semibold mb-2 text-sm">Save a reusable custom template</h2>
-      <p className="text-xs text-muted mb-4">
-        Templates appear in the predefined dropdown for quick reuse
-      </p>
+      <h2 className="font-display font-semibold mb-2 text-sm">Save reusable template</h2>
+      <p className="text-xs text-muted mb-4">4-option questions for quick reuse</p>
       <form
         action={(fd) => {
           startTransition(() => {
             void saveCustomQuestionTemplate(fd);
           });
         }}
-        className="flex flex-wrap gap-3"
+        className="space-y-4"
       >
-        <Textarea name="text" placeholder="Template question" className="min-h-[80px] flex-1 min-w-[240px]" required />
-        <Input name="category" placeholder="Category" className="w-40" />
-        <Button type="submit" variant="secondary" disabled={pending} className="self-end">
+        <Textarea name="text" placeholder="Question" className="min-h-[80px]" required />
+        <Input name="category" placeholder="Category" className="max-w-xs" />
+        <QuestionOptionsFields />
+        <Button type="submit" variant="secondary" disabled={pending}>
           Save template
         </Button>
       </form>

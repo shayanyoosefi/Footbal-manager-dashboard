@@ -6,13 +6,15 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { QuestionOptionsFields } from "@/components/ui/question-options-fields";
 
 export function CreateQuestionForm() {
   const [pending, startTransition] = useTransition();
 
   return (
     <Card>
-      <h2 className="font-semibold mb-4">Add predefined question</h2>
+      <h2 className="font-display font-semibold mb-1">Add predefined question</h2>
+      <p className="text-xs text-muted mb-4">Players choose one of four options (A–D)</p>
       <form
         action={(fd) => {
           startTransition(() => {
@@ -23,6 +25,7 @@ export function CreateQuestionForm() {
       >
         <Textarea name="text" placeholder="Question text" required minLength={5} />
         <Input name="category" placeholder="Category (e.g. Wellbeing)" />
+        <QuestionOptionsFields />
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Add question"}
         </Button>
