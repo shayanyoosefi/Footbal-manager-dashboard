@@ -1,7 +1,9 @@
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { CreatePlayerForm } from "@/components/coach/create-player-form";
 import { isAnswered } from "@/lib/assignments";
 
@@ -57,9 +59,16 @@ export default async function CoachPlayersPage() {
                     {p.jerseyNo ? ` · #${p.jerseyNo}` : ""}
                   </p>
                 </div>
-                {unanswered > 0 && (
-                  <p className="text-sm text-warning">{unanswered} unanswered</p>
-                )}
+                <div className="flex flex-col items-end gap-2">
+                  {unanswered > 0 && (
+                    <p className="text-sm text-warning">{unanswered} unanswered</p>
+                  )}
+                  <Link href={`/coach/responses?playerId=${p.id}`}>
+                    <Button variant="ghost" size="sm">
+                      View responses
+                    </Button>
+                  </Link>
+                </div>
               </Card>
             );
           })

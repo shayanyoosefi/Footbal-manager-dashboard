@@ -20,8 +20,11 @@ export function CreateQuestionForm() {
 
   return (
     <Card>
-      <h2 className="font-display font-semibold mb-1">Add predefined question</h2>
-      <p className="text-xs text-muted mb-4">Players choose one of four options (A–D)</p>
+      <h2 className="font-display font-semibold mb-1">Design question</h2>
+      <p className="text-xs text-muted mb-4">
+        Write the question and four answer options (A–D). Coaches and admins can assign it to
+        players.
+      </p>
       <form
         ref={formRef}
         action={(fd) => {

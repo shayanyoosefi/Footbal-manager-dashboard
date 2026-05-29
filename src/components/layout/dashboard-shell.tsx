@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Role } from "@prisma/client";
 import {
   BarChart3,
+  ClipboardList,
   LayoutDashboard,
   MessageSquare,
   Shield,
@@ -16,7 +17,12 @@ const navByRole: Record<Role, NavItem[]> = {
     { href: "/admin", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
     { href: "/admin/users", label: "Users", icon: <Users className="h-4 w-4" /> },
     { href: "/admin/questions", label: "Questions", icon: <MessageSquare className="h-4 w-4" /> },
-    { href: "/coach", label: "Coach view", icon: <Shield className="h-4 w-4" /> },
+    {
+      href: "/admin/assignments",
+      label: "Assign questions",
+      icon: <ClipboardList className="h-4 w-4" />,
+    },
+    { href: "/admin/responses", label: "Player responses", icon: <Shield className="h-4 w-4" /> },
   ],
   [Role.COACH]: [
     { href: "/coach", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },

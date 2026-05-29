@@ -23,6 +23,11 @@ export const updatePlayerSchema = z.object({
   jerseyNo: z.coerce.number().int().min(1).max(99).optional().nullable(),
 });
 
+export const assignPlayerCoachSchema = z.object({
+  playerProfileId: z.string().min(1),
+  coachId: z.string().min(1),
+});
+
 const optionField = z.string().min(1, "Required").max(200);
 
 export const questionOptionsSchema = z.object({

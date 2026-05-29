@@ -5,7 +5,11 @@ import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
-import { createUserSchema, updatePlayerSchema } from "@/lib/validators";
+import {
+  assignPlayerCoachSchema,
+  createUserSchema,
+  updatePlayerSchema,
+} from "@/lib/validators";
 
 export async function createPlayer(formData: FormData) {
   const session = await requireRole(Role.COACH, Role.ADMIN);
@@ -91,6 +95,35 @@ export async function updatePlayer(playerProfileId: string, formData: FormData) 
     },
   });
 
+  revalidatePath("/coach/players");
+  revalidatePath("/admin/users");
+  return { success: true };
+}
+
+export async function assignPlayerCoach(playerProfileId: string, coachId: string) {
+  await requireRole(Role.ADMIN);
+
+  const parsed = assignPlayerCoachSchema.safeParse({ playerProfileId, coachId });
+  if (!parsed.success) return { error: "Invalid assignment" };
+
+  const [profile, coach] = await Promise.all([
+    prisma.playerProfile.findUnique({ where: { id: parsed.data.playerProfileId } }),
+    prisma.user.findFirst({
+      where: { id: parsed.data.coachId, role: Role.COACH },
+    }),
+  ]);
+
+  if (!profile) return { error: "Player not found" };
+  if (!coach) return { error: "Coach not found" };
+
+  await prisma.playerProfile.update({
+    where: { id: profile.id },
+    data: { coachId: coach.id },
+  });
+
+  revalidatePath("/admin/users");
+  revalidatePath("/admin/assignments");
+  revalidatePath("/coach");
   revalidatePath("/coach/players");
   return { success: true };
 }

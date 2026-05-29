@@ -92,6 +92,8 @@ export async function assignQuestions(formData: FormData) {
   });
 
   revalidateCoachPaths();
+  revalidatePath("/admin/assignments");
+  revalidatePath("/admin/responses");
   return { success: true };
 }
 

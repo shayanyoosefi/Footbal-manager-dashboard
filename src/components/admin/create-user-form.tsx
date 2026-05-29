@@ -64,12 +64,11 @@ export function CreateUserForm({
           value={role}
           onChange={(e) => setRole(e.target.value as Role)}
           className="rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm"
+          aria-label="User role"
         >
-          {Object.values(Role).map((r) => (
-            <option key={r} value={r}>
-              {r === Role.COACH ? "COACH" : r}
-            </option>
-          ))}
+          <option value={Role.COACH}>Coach</option>
+          <option value={Role.PLAYER}>Player</option>
+          <option value={Role.ADMIN}>Admin</option>
         </select>
         {role === Role.PLAYER && (
           <>

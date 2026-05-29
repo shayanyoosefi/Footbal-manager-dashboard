@@ -63,6 +63,7 @@ export async function createUser(formData: FormData) {
   });
 
   revalidatePath("/admin/users");
+  revalidatePath("/admin/assignments");
   revalidatePath("/coach");
   revalidatePath("/coach/players");
   return { success: true };

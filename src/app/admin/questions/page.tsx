@@ -14,7 +14,10 @@ export default async function AdminQuestionsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-2xl font-bold tracking-wide">Question library</h1>
-        <p className="text-muted mt-1">4-option questions available to all coaches</p>
+        <p className="text-muted mt-1">
+          Design multiple-choice questions for the academy. Assign them to players from Assign
+          questions.
+        </p>
       </div>
 
       <CreateQuestionForm />
