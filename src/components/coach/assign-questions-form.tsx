@@ -40,17 +40,22 @@ export function AssignQuestionsForm({
     formData.set("playerIds", selectedPlayers.join(","));
     setMessage("");
     startTransition(async () => {
-      const result = await assignQuestions(formData);
-      if (result?.error) {
-        setMessage(result.error);
-        return;
-      }
+      try {
+        const result = await assignQuestions(formData);
+        if (result?.error) {
+          setMessage(result.error);
+          return;
+        }
 
-      formRef.current?.reset();
-      setSelectedPlayers([]);
-      setMode("predefined");
-      setMessage("Questions sent to players.");
-      router.refresh();
+        formRef.current?.reset();
+        setSelectedPlayers([]);
+        setMode("predefined");
+        setMessage("Questions sent to players.");
+        router.refresh();
+      } catch (error) {
+        console.error("Question assignment failed", error);
+        setMessage("Could not send the question. Check the server log for details.");
+      }
     });
   }
 
@@ -105,7 +110,7 @@ export function AssignQuestionsForm({
             >
               <option value="">Choose a question</option>
               {questions.map((q) => (
-              <option key={q.id} value={q.id}>
+                <option key={q.id} value={q.id}>
                   [{q.category ?? "General"}] {q.text.slice(0, 80)}
                   {q.text.length > 80 ? "…" : ""}
                 </option>

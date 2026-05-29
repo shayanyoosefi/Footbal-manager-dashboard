@@ -30,7 +30,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | Role | Email | Password |
 |------|-------|----------|
 | Admin | admin@academy.com | password123 |
-| Coach | manager@academy.com | password123 |
+| Coach | coach@academy.com | password123 |
 | Player | player@academy.com | password123 |
 
 ## Environment
@@ -105,7 +105,7 @@ export DATABASE_URL="postgresql://..."
 npm run db:seed
 ```
 
-Demo logins: `manager@academy.com` / `password123` (coach role), plus the admin/player accounts from the seed response.
+Demo logins: `coach@academy.com` / `password123` (coach role), plus the admin/player accounts from the seed response.
 
 ### 3. Local development
 

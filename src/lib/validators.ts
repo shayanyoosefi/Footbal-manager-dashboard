@@ -29,6 +29,36 @@ export const assignPlayerCoachSchema = z.object({
 });
 
 const optionField = z.string().min(1, "Required").max(200);
+function isValidDateInput(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
+const optionalOptionField = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  optionField.optional(),
+);
+const optionalDateField = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a valid date")
+    .refine((value) => isValidDateInput(value), {
+      message: "Use a valid date",
+    })
+    .optional(),
+);
 
 export const questionOptionsSchema = z.object({
   text: z.string().min(5).max(500),
@@ -41,13 +71,13 @@ export const questionOptionsSchema = z.object({
 
 export const assignQuestionSchema = z.object({
   playerIds: z.array(z.string()).min(1),
-  questionId: z.string().optional(),
+  questionId: z.string().min(1).optional(),
   customText: z.string().min(5).max(500).optional(),
-  optionA: optionField.optional(),
-  optionB: optionField.optional(),
-  optionC: optionField.optional(),
-  optionD: optionField.optional(),
-  dueDate: z.string().optional(),
+  optionA: optionalOptionField,
+  optionB: optionalOptionField,
+  optionC: optionalOptionField,
+  optionD: optionalOptionField,
+  dueDate: optionalDateField,
 });
 
 export const answerSchema = z.object({

@@ -38,29 +38,51 @@ export async function createPlayer(formData: FormData) {
   }
 
   const data = parsed.data;
-  const existing = await prisma.user.findUnique({
-    where: { email: data.email.toLowerCase() },
-  });
-  if (existing) return { error: { email: ["Email already in use"] } };
 
-  const passwordHash = await hash(data.password, 12);
+  try {
+    if (session.user.role === Role.ADMIN) {
+      const coach = await prisma.user.findFirst({
+        where: { id: coachId, role: Role.COACH },
+        select: { id: true },
+      });
 
-  await prisma.user.create({
-    data: {
-      name: data.name,
-      email: data.email.toLowerCase(),
-      passwordHash,
-      role: Role.PLAYER,
-      playerProfile: {
-        create: {
-          coachId,
-          position: data.position,
-          squad: data.squad,
-          jerseyNo: data.jerseyNo ?? undefined,
+      if (!coach) {
+        return { error: { coachId: ["Select a valid coach"] } };
+      }
+    }
+
+    const existing = await prisma.user.findUnique({
+      where: { email: data.email.toLowerCase() },
+    });
+    if (existing) return { error: { email: ["Email already in use"] } };
+
+    const passwordHash = await hash(data.password, 12);
+
+    await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email.toLowerCase(),
+        passwordHash,
+        role: Role.PLAYER,
+        playerProfile: {
+          create: {
+            coachId,
+            position: data.position,
+            squad: data.squad,
+            jerseyNo: data.jerseyNo ?? undefined,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    console.error("Failed to create player", {
+      email: data.email.toLowerCase(),
+      coachId,
+      role: session.user.role,
+      error,
+    });
+    return { error: "Could not create player. The server log has more details." };
+  }
 
   revalidatePath("/coach");
   revalidatePath("/coach/players");

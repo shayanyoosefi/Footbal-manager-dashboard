@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { QuestionType, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import { AssignQuestionsForm } from "@/components/coach/assign-questions-form";
@@ -7,6 +7,13 @@ import { SaveCustomTemplateForm } from "@/components/coach/save-custom-template-
 export default async function CoachQuestionsPage() {
   const session = await requireRole(Role.COACH, Role.ADMIN);
   const coachId = session.user.role === Role.COACH ? session.user.id : undefined;
+  const questionWhere =
+    session.user.role === Role.COACH
+      ? {
+          isActive: true,
+          OR: [{ type: QuestionType.PREDEFINED }, { authorId: session.user.id }],
+        }
+      : { isActive: true };
 
   const [players, questions] = await Promise.all([
     prisma.playerProfile.findMany({
@@ -14,7 +21,7 @@ export default async function CoachQuestionsPage() {
       include: { user: { select: { name: true } } },
     }),
     prisma.questionTemplate.findMany({
-      where: { isActive: true },
+      where: questionWhere,
       orderBy: [{ type: "asc" }, { category: "asc" }],
     }),
   ]);

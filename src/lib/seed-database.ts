@@ -1,5 +1,5 @@
 import { hash } from "bcryptjs";
-import { QuestionType, Role } from "@prisma/client";
+import { AssignmentStatus, QuestionType, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSelectedOptionText } from "@/lib/questions";
 
@@ -171,6 +171,7 @@ export async function seedDatabase() {
   for (const spec of answeredSpecs) {
     const assignment = await prisma.questionAssignment.create({
       data: {
+        status: AssignmentStatus.ANSWERED,
         coachId: coach.id,
         playerId: spec.playerId,
         questionId: spec.question.id,

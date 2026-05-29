@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { AssignmentStatus, QuestionType, Role } from "@prisma/client";
+import { AssignmentStatus, QuestionType, Role, type Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/session";
 import {
@@ -17,6 +17,23 @@ function revalidateCoachPaths() {
   revalidatePath("/coach/responses");
   revalidatePath("/coach/statistics");
   revalidatePath("/player");
+}
+
+function getFirstValidationError(error: {
+  flatten: () => { fieldErrors: Record<string, string[] | undefined> };
+}) {
+  const fieldErrors = error.flatten().fieldErrors;
+  for (const messages of Object.values(fieldErrors)) {
+    const message = messages?.[0];
+    if (message) return message;
+  }
+
+  return "Invalid assignment data";
+}
+
+function parseDueDate(value?: string) {
+  if (!value) return undefined;
+  return new Date(`${value}T00:00:00.000Z`);
 }
 
 export async function assignQuestions(formData: FormData) {
@@ -37,64 +54,95 @@ export async function assignQuestions(formData: FormData) {
   };
 
   const parsed = assignQuestionSchema.safeParse(raw);
-  if (!parsed.success) return { error: "Invalid assignment data" };
+  if (!parsed.success) return { error: getFirstValidationError(parsed.error) };
 
   const { questionId, customText, dueDate } = parsed.data;
   const coachId = session.user.id;
 
-  let finalQuestionId = questionId;
+  try {
+    let finalQuestionId = questionId;
 
-  if (customText) {
-    const opts = questionOptionsSchema.safeParse({
-      text: customText,
-      category: "Custom",
-      ...options,
+    if (customText) {
+      const opts = questionOptionsSchema.safeParse({
+        text: customText,
+        category: "Custom",
+        ...options,
+      });
+      if (!opts.success) return { error: "Custom questions need all 4 answer options" };
+
+      const custom = await prisma.questionTemplate.create({
+        data: {
+          text: opts.data.text,
+          category: opts.data.category ?? "Custom",
+          optionA: opts.data.optionA,
+          optionB: opts.data.optionB,
+          optionC: opts.data.optionC,
+          optionD: opts.data.optionD,
+          type: QuestionType.CUSTOM,
+          authorId: coachId,
+        },
+      });
+      finalQuestionId = custom.id;
+    }
+
+    if (!finalQuestionId) {
+      return { error: "Select a question or create a custom one with 4 options" };
+    }
+
+    const questionWhere: Prisma.QuestionTemplateWhereInput = {
+      id: finalQuestionId,
+      isActive: true,
+      ...(session.user.role === Role.COACH && !customText
+        ? {
+            OR: [{ type: QuestionType.PREDEFINED }, { authorId: coachId }],
+          }
+        : {}),
+    };
+
+    const question = await prisma.questionTemplate.findFirst({
+      where: questionWhere,
+      select: { id: true },
     });
-    if (!opts.success) return { error: "Custom questions need all 4 answer options" };
 
-    const custom = await prisma.questionTemplate.create({
-      data: {
-        text: opts.data.text,
-        category: opts.data.category ?? "Custom",
-        optionA: opts.data.optionA,
-        optionB: opts.data.optionB,
-        optionC: opts.data.optionC,
-        optionD: opts.data.optionD,
-        type: QuestionType.CUSTOM,
-        authorId: coachId,
+    if (!question) {
+      return { error: "Question not found or not available to you" };
+    }
+
+    const players = await prisma.playerProfile.findMany({
+      where: {
+        id: { in: parsed.data.playerIds },
+        ...(session.user.role === Role.COACH ? { coachId } : {}),
       },
     });
-    finalQuestionId = custom.id;
+
+    if (players.length !== parsed.data.playerIds.length) {
+      return { error: "Some players were not found or not in your squad" };
+    }
+
+    await prisma.questionAssignment.createMany({
+      data: players.map((p) => ({
+        coachId: session.user.role === Role.ADMIN ? p.coachId : coachId,
+        playerId: p.id,
+        questionId: finalQuestionId,
+        dueDate: parseDueDate(dueDate),
+      })),
+    });
+
+    revalidateCoachPaths();
+    revalidatePath("/admin/assignments");
+    revalidatePath("/admin/responses");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to assign questions", {
+      userId: session.user.id,
+      role: session.user.role,
+      playerCount: parsed.data.playerIds.length,
+      questionId,
+      hasCustomText: Boolean(customText),
+      error,
+    });
+    return { error: "Could not send the question. The server log has more details." };
   }
-
-  if (!finalQuestionId) {
-    return { error: "Select a question or create a custom one with 4 options" };
-  }
-
-  const players = await prisma.playerProfile.findMany({
-    where: {
-      id: { in: parsed.data.playerIds },
-      ...(session.user.role === Role.COACH ? { coachId } : {}),
-    },
-  });
-
-  if (players.length !== parsed.data.playerIds.length) {
-    return { error: "Some players were not found or not in your squad" };
-  }
-
-  await prisma.questionAssignment.createMany({
-    data: players.map((p) => ({
-      coachId: session.user.role === Role.ADMIN ? p.coachId : coachId,
-      playerId: p.id,
-      questionId: finalQuestionId,
-      dueDate: dueDate ? new Date(dueDate) : undefined,
-    })),
-  });
-
-  revalidateCoachPaths();
-  revalidatePath("/admin/assignments");
-  revalidatePath("/admin/responses");
-  return { success: true };
 }
 
 export async function submitAnswer(assignmentId: string, formData: FormData) {
