@@ -1,8 +1,24 @@
 import { execSync } from "node:child_process";
 
+function normalizeDatabaseUrl(url) {
+  if (!url) return url;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.searchParams.has("channel_binding")) {
+      parsed.searchParams.delete("channel_binding");
+      return parsed.toString();
+    }
+  } catch {
+    return url;
+  }
+
+  return url;
+}
+
 /** Neon / Vercel Storage may use a custom prefix instead of DATABASE_URL */
 function resolveDatabaseUrl() {
-  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  if (process.env.DATABASE_URL) return normalizeDatabaseUrl(process.env.DATABASE_URL);
 
   const candidates = [
     "DATABASE_POSTGRES_PRISMA_URL",
@@ -17,7 +33,7 @@ function resolveDatabaseUrl() {
   for (const key of candidates) {
     if (process.env[key]) {
       console.log(`Using ${key} as DATABASE_URL for Prisma`);
-      return process.env[key];
+      return normalizeDatabaseUrl(process.env[key]);
     }
   }
 
@@ -30,7 +46,7 @@ function resolveDirectDatabaseUrl() {
     process.env.DATABASE_POSTGRES_URL_NON_POOLING ??
     process.env.POSTGRES_URL_NON_POOLING;
 
-  if (explicit) return explicit;
+  if (explicit) return normalizeDatabaseUrl(explicit);
 
   const databaseUrl = resolveDatabaseUrl();
   if (databaseUrl?.includes("-pooler.")) {

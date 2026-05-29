@@ -77,7 +77,8 @@ SQLite does not work on Vercel. Use **[Neon](https://neon.tech)** (free) or **Ve
 
 | Name | Value | Environments |
 |------|--------|--------------|
-| `DATABASE_URL` | Your `postgresql://...` connection string (or set Neon prefix to **DATABASE** so `DATABASE_URL` is created automatically) | Production, Preview |
+| `DATABASE_URL` | Your pooled/runtime `postgresql://...` connection string (or set Neon prefix to **DATABASE** so `DATABASE_URL` is created automatically) | Production, Preview |
+| `DIRECT_URL` | Optional direct/non-pooling Postgres URL for Prisma build steps | Production, Preview |
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` | Production, Preview |
 | `NEXTAUTH_URL` | `https://your-app.vercel.app` | Production |
 
@@ -85,7 +86,7 @@ SQLite does not work on Vercel. Use **[Neon](https://neon.tech)** (free) or **Ve
 
 The `vercel-build` script migrates legacy schemas, then runs `prisma db push` on deploy.
 `vercel.json` pins Vercel to `npm run vercel-build`, so production and preview deploys use the same setup path.
-If your provider exposes a direct or non-pooling Postgres URL, set `DIRECT_URL` too for smoother Prisma deploys.
+If your provider exposes both pooled and direct URLs, use the pooled URL for `DATABASE_URL` and the direct URL for `DIRECT_URL`.
 
 If deploy fails with schema errors on an old database, set **`ALLOW_DB_RESET=true`** in Vercel, redeploy once (wipes data), run the seed URL, then remove `ALLOW_DB_RESET`.
 
@@ -97,6 +98,7 @@ If deploy fails with schema errors on an old database, set **`ALLOW_DB_RESET=tru
 2. Redeploy.
 3. Visit once: `https://your-app.vercel.app/api/setup/seed?secret=YOUR_SETUP_SECRET`
 4. You should see JSON with `ok: true` and demo accounts.
+5. Remove `SETUP_SECRET` from Vercel env vars and redeploy unless you intentionally want to keep the reset endpoint available.
 
 **Option B — from your machine:**
 
